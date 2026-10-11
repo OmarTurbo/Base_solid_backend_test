@@ -1,0 +1,3 @@
+export {IAuthRepository} from "./auth.repository.interface";
+export {IUserRepository} from "./user.repository.interface";
+export {IMessageRepository} from "./message.repository.interface";

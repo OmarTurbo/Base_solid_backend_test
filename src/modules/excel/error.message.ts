@@ -1,0 +1,1 @@
+export const EXCEL_ERROR = {} as const;
