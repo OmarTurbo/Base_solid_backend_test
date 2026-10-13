@@ -5,3 +5,5 @@ export {IUserResponse} from "./userResponse.interface";
 export {IMessage} from "./message.interface";
 export {IFloor} from "./floor.interface";
 export {IUnit} from "./unit.interface";
+export {IFloorPopulated} from "./IFloorPopulated.interface";
+export {IUnitResponse} from "./IUnitResponse.interface";
