@@ -32,6 +32,10 @@ const userSchema = new Schema<IUser>(
       enum: Object.values(UserType),
       required: true,
     },
+    tokenVersion: {
+      type: Number,
+      default: 0,
+    },
 
     password: {
       type: String,
