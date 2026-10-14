@@ -1,18 +1,18 @@
 import { UnitStatus } from "../enums";
 
 export interface IUnitResponse {
-    floor_name?: string;
-    floor_type?: string;
-    floor_status?: string;
+    floorName?: string;
+    floorType?: string;
+    floorStatus?: string;
     _id?: string | unknown;
-    unit_status: UnitStatus;
-    mtr_price: number;
-    outdoor_terrace: number;
-    total_area: number;
-    GSA_area: number;
-    unit_segment: string;
-    type_segment: string;
-    final_price: number | undefined;
+    unitStatus: UnitStatus;
+    mtrPrice: number;
+    outdoorTerrace: number;
+    totalArea: number;
+    GSAArea: number;
+    unitSegment: string;
+    typeSegment: string;
+    finalPrice: number | undefined;
     createdAt?: Date;
     updatedAt?: Date;
 }

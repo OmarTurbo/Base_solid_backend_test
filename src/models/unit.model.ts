@@ -1,53 +1,53 @@
 import mongoose, { Schema } from "mongoose";
 import { IUnit } from "../interfaces";
-import { UnitStatus, TypeSegment } from "../enums/unitEnums";
+import { UnitStatus, TypeSegment } from "../enums";
 
-const Unit = new Schema<IUnit>(
+const unitSchema = new Schema<IUnit>(
     {
         floor: {
             type: Schema.Types.ObjectId,
             ref: "Floor",
             required: true,
         },
-        unit_status: {
+        unitStatus: {
             type: String,
             enum: Object.values(UnitStatus),
             default: UnitStatus.AVAILABLE,
         },
 
-        mtr_price: {
+        mtrPrice: {
             type: Number,
             required: true,
             default: 0,
         },
-        outdoor_terrace: {
+        outdoorTerrace: {
             type: Number,
             required: true,
             default: 0,
         },
 
-        total_area: {
+        totalArea: {
             type: Number,
             required: true,
         },
-        GSA_area: {
+        GSAArea: {
             type: Number,
             required: true,
         },
 
-        unit_segment: {
+        unitSegment: {
             type: String,
             unique: true,
             required: true,
             trim: true,
         },
 
-        type_segment: {
+        typeSegment: {
             type: String,
             enum: Object.values(TypeSegment),
             required: true,
         },
-        final_price: {
+        finalPrice: {
             type: Number,
             required: true,
         },
@@ -61,7 +61,7 @@ const Unit = new Schema<IUnit>(
     { timestamps: true }
 );
 
-Unit.pre("save", async function () {
+unitSchema.pre("save", async function () {
     if (!this.isNew || this.progUnitKey) {
         return;
     }
@@ -76,4 +76,4 @@ Unit.pre("save", async function () {
         : 1;
 });
 
-export default mongoose.model<IUnit>("Unit", Unit);
+export default mongoose.model<IUnit>("Unit", unitSchema);

@@ -4,13 +4,15 @@ import { UnitStatus, TypeSegment } from "../enums";
 
 export interface IUnit extends Document {
     floor: Types.ObjectId;
-    unit_status: UnitStatus;
-    mtr_price: number;
-    total_area: number;
-    outdoor_terrace: number;
-    GSA_area: number;
-    unit_segment: string;
-    type_segment: TypeSegment;
-    final_price?: number;
+    unitStatus: UnitStatus;
+    mtrPrice: number;
+    totalArea: number;
+    outdoorTerrace: number;
+    GSAArea: number;
+    unitSegment: string;
+    typeSegment: TypeSegment;
+    finalPrice?: number;
     progUnitKey: number;
+    createdAt: Date;
+    updatedAt: Date;
 }

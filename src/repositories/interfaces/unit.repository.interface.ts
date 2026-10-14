@@ -1,9 +1,11 @@
-import { IUnit } from "../../interfaces"
+import { IUnit } from "../../interfaces";
+import { IUnitPopulated } from "../../interfaces";
 
-export interface IUnitRepository{
-    createUnitService(data: IUnit): Promise<IUnit>;
-    getUnitsService(query: Record<string, any>): Promise<IUnit[]>;
-    getUnitByIdService(id: string): Promise<IUnit | null>;
-    updateUnitService(id: string, data: Partial<IUnit>, userRole: string): Promise<IUnit | null>;
-    deleteUnitService(id: string, adminRole: string): Promise<boolean>;
+export interface IUnitRepository {
+    createUnit(data: Partial<IUnit>): Promise<IUnit>;
+    findByUnitSegment(unitSegment: string): Promise<IUnit | null>;
+    findAllUnits(query: Record<string, string>): Promise<IUnitPopulated[]>;
+    findUnitById(id: string): Promise<IUnitPopulated | null>;
+    updateUnitById(id: string, data: Partial<IUnit>): Promise<IUnit | null>;
+    deleteUnitById(id: string): Promise<IUnit | null>;
 }

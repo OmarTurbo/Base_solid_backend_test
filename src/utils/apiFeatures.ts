@@ -2,7 +2,7 @@ import { Query } from "mongoose";
 export class APIFeatures<T> {
 constructor(
     public query: Query<T[], T>,
-    private queryString: Record<string, string>
+    public queryString: Record<string, string>
   ) {}
 
   filter() {
