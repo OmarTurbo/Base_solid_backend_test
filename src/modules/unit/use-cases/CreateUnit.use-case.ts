@@ -29,8 +29,8 @@ export class CreateUnitUseCase {
         const floor = await this.floorRepository.findById(data.floor);
         if (!floor) {
             throw new AppError(
-                UNIT_ERRORS.NOT_FOUND.message,
-                UNIT_ERRORS.NOT_FOUND.statusCode,
+                UNIT_ERRORS.FLOOR_NOT_FOUND.message,
+                UNIT_ERRORS.FLOOR_NOT_FOUND.statusCode,
             );
         }
 

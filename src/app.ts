@@ -5,11 +5,12 @@ import morgan from "morgan";
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import { AppError } from "./utils";
-import { globalErrorHandler }  from "./middlewares";
+import { globalErrorHandler } from "./middlewares";
 import { authRouter } from "./modules/auth/auth.routes";
 import { userRouter } from "./modules/user/user.routes";
 import { messageRouter } from "./modules/message/message.routes";
-import {floorRouter} from "./modules/floor/floor.routes";
+import { floorRouter } from "./modules/floor/floor.routes";
+import { unitRouter } from "./modules/unit/unit.routes";
 import { excelRouter } from "./modules/excel/excel.routes";
 import { apiLimiter } from "./config/rateLimiter";
 import { env } from "./config/env";
@@ -31,7 +32,7 @@ app.use(
     methods: ["GET", "POST", "PATCH", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
-);  
+);
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
@@ -40,6 +41,7 @@ app.use("/api/v1/test/auth", authRouter);
 app.use("/api/v1/test/user", apiLimiter, userRouter);
 app.use("/api/v1/test/messages", messageRouter);
 app.use("/api/v1/test/floors", floorRouter);
+app.use("/api/v1/test/units", unitRouter);
 app.use("/api/v1/excel", apiLimiter, excelRouter);
 
 app.all("/{*splat}", (req, _res, next) => {

@@ -5,6 +5,6 @@ export const UNIT_TYPES = {
     CreateUnitUseCase: Symbol.for("CreateUnitUseCase"),
     GetAllUnitsUseCase: Symbol.for("GetAllUnitsUseCase"),
     GetUnitByIdUseCase: Symbol.for("GetUnitByIdUseCase"),
-    UpdateuUnitUseCase: Symbol.for("UpdateUnitUseCase"),
+    UpdateUnitUseCase: Symbol.for("UpdateUnitUseCase"),
     DeleteUnitUseCase: Symbol.for("DeleteUnitUseCase"),
 };
