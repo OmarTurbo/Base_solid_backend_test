@@ -9,3 +9,8 @@ export interface IFloor extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
+export interface IFloorUpsert{
+  floorName: string;
+  floorType: FloorType;
+  floorStatus: FloorStatus;
+}

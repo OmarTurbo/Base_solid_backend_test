@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import { Unit } from "../models";
-import { IUnit, IFloorPopulated, IUnitPopulated } from "../interfaces";
+import { IUnit, IFloorPopulated, IUnitPopulated, IUnitUpsert } from "../interfaces";
 import { IUnitRepository } from "./interfaces/unit.repository.interface";
 import { APIFeatures } from "../utils/apiFeatures";
 
@@ -43,5 +43,25 @@ export class UnitRepository implements IUnitRepository {
 
     async deleteUnitById(id: string): Promise<IUnit | null> {
         return Unit.findByIdAndDelete(id).lean<IUnit | null>();
+    }
+
+    async bulkUpsertUnits(units: IUnitUpsert[]): Promise<void> {
+        if (!units.length) return;
+
+        const operations = units.map((unit) => ({
+            updateOne: {
+                filter: { unitSegment: unit.unitSegment },
+                update: { $set: unit },
+                upsert: true,
+            },
+        }));
+
+        await Unit.bulkWrite(operations);
+    }
+
+    async findAllWithFloor(): Promise<IUnitPopulated[]> {
+        return Unit.find()
+            .populate<{ floor: IFloorPopulated }>("floor", FLOOR_FIELDS)
+            .lean<IUnitPopulated[]>();
     }
 }

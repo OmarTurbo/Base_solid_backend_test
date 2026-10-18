@@ -2,8 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import { injectable, inject } from "inversify";
 import fs from "fs";
 import { EXCEL_TYPES } from "./excel.type";
+import { EXCEL_ERROR } from "./error.message";
+import { AppError } from "../../utils";
 import { ImportUnitsExcelUseCase } from "./use-case/import-units-excel.use-case";
 import { ExportUnitsExcelUseCase } from "./use-case/export-units-excel.use-case";
+import { catchAsync } from "../../utils";
 
 @injectable()
 export class UnitExcelController {
@@ -13,47 +16,26 @@ export class UnitExcelController {
 
     @inject(EXCEL_TYPES.ExportUnitsExcelUseCase)
     private readonly exportUnitsExcelUseCase: ExportUnitsExcelUseCase
-  ) {}
-
-  importExcel = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          message: "Excel file is required",
-        });
-      }
-
-      const result = await this.importUnitsExcelUseCase.execute(
-        req.file.path
+  ) { }
+  importExcel = catchAsync(async (req: Request, res: Response) => {
+    if (!req.file) {
+      throw new AppError(
+        EXCEL_ERROR.NO_FILE.message,
+        EXCEL_ERROR.NO_FILE.statusCode,
       );
-
-      return res.status(200).json(result);
-    } catch (error) {
-      next(error);
     }
-  };
+    const result = await this.importUnitsExcelUseCase.execute(req.file.path);
+    res.status(200).json({ status: "success", data: result });
+  });
 
-  exportExcel = async (
-    _req: Request,
-    res: Response,
-    next: NextFunction
-  ) => {
-    try {
-      const filePath = await this.exportUnitsExcelUseCase.execute();
+  exportExcel = catchAsync(async (_req: Request, res: Response) => {
+    const filePath = await this.exportUnitsExcelUseCase.execute();
 
-      // Delete the temp file from disk after the stream finishes
-    //  res.download(filePath, "units-export.xlsx", (err) => {
-        // Clean up regardless of whether download succeeded
-      //  fs.unlink(filePath, () => {});
-      //  if (err && !res.headersSent) next(err);
-     // });
-    } catch (error) {
-      next(error);
-    }
-  };
+    res.download(filePath, "units-export.xlsx", (err) => {
+      fs.unlink(filePath, () => { });
+      if (err && !res.headersSent) {
+        res.status(500).json({ message: "Failed to download file" });
+      }
+    });
+  });
 }

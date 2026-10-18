@@ -1,124 +1,116 @@
 import { injectable, inject } from "inversify";
 import fs from "fs";
 import ExcelJS from "exceljs";
-import { getCellNumber, getCellText } from "../helper";
+import { UNIT_TYPES } from "../../unit/unit.types";
+import { FLOOR_TYPES } from "../../floor/floor.types";
+import {
+  IUnitRepository,
+  IFloorRepository,
+} from "../../../repositories/interfaces";
+import { IFloorUpsert, IUnitUpsert } from "../../../interfaces";
+import { AppError } from "../../../utils";
+import { parseImportRow, IImportRow } from "../helper";
+import { EXCEL_ERROR } from "../error.message";
+
+const MAX_ROWS = 2000;
 
 @injectable()
 export class ImportUnitsExcelUseCase {
   constructor(
-    // @inject(UNIT_TYPES.UnitRepository)
-    // private readonly unitRepository: IUnitRepository,
+    @inject(UNIT_TYPES.unitRepository)
+    private readonly unitRepository: IUnitRepository,
 
-    // @inject(BUILDING_TYPES.BuildingRepository)
-    // private readonly buildingRepository: IBuildingRepository
-  ) {}
+    @inject(FLOOR_TYPES.FloorRepository)
+    private readonly floorRepository: IFloorRepository,
+  ) { }
 
   async execute(filePath: string) {
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(filePath);
-    const sheet = workbook.worksheets[0];
+    try {
+      // 1. Read the file
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(filePath);
+      const sheet = workbook.worksheets[0];
 
-  //  const rows: ImportUnitRow[] = [];
-  const skipped: { row: number; reason: string }[] = [];
+      if (!sheet) {
+        throw new AppError(
+          EXCEL_ERROR.EMPTY_FILE.message,
+          EXCEL_ERROR.EMPTY_FILE.statusCode,
+        );
+      }
 
-  // ==> note that the code below is just an example of how you can parse and validate the Excel rows.
-  //   sheet.eachRow((row, index) => {
-  //     if (index === 1) return; // skip header
+      // 2. Turn every row into a clean object, or a reason to skip it
+      const rows: IImportRow[] = [];
+      const skipped: { row: number; reason: string }[] = [];
 
-    
-  //     const building = getCellText(row.getCell(2));
-  //     const unitCode  = getCellText(row.getCell(3));
+      sheet.eachRow((excelRow, index) => {
+        if (index === 1) return; // header row
 
-  //     if (!building || !unitCode) {
-  //       skipped.push({ row: index, reason: "Missing building or unitCode" });
-  //       return;
-  //     }
+        const result = parseImportRow(excelRow);
+        if ("reason" in result) {
+          skipped.push({ row: index, reason: result.reason });
+          return;
+        }
+        rows.push(result.row);
+      });
 
-  //     const rawStatus   = getCellText(row.getCell(4));
-  //     const rawCategory = getCellText(row.getCell(7));
-  //     const rawFloor    = getCellText(row.getCell(9));
+      if (rows.length + skipped.length > MAX_ROWS) {
+        throw new AppError(
+          EXCEL_ERROR.TOO_MANY_ROWS.message,
+          EXCEL_ERROR.TOO_MANY_ROWS.statusCode,
+        );
+      }
 
-      // const lastStatus = Object.values(UnitStatusEnum).find((v) => v === rawStatus);
-      // const category   = Object.values(UnitCategoryEnum).find((v) => v === rawCategory);
-      // const floor      = Object.values(FloorEnum).find((v) => v === rawFloor);
+      // 3. Save the floors first (one entry per floor name, first row wins)
+      const floorsByName = new Map<string, IFloorUpsert>();
+      for (const r of rows) {
+        if (!floorsByName.has(r.floorName)) {
+          floorsByName.set(r.floorName, {
+            floorName: r.floorName,
+            floorType: r.floorType,
+            floorStatus: r.floorStatus,
+          });
+        }
+      }
+      await this.floorRepository.bulkUpsertFloors([...floorsByName.values()]);
 
-      // if (!lastStatus || !category || !floor) {
-      //   skipped.push({
-      //     row: index,
-      //     reason: `Invalid enum — status:"${rawStatus}" category:"${rawCategory}" floor:"${rawFloor}"`,
-      //   });
-      //   return;
-      // }
+      // 4. Look the floors up again to learn their ids
+      const savedFloors = await this.floorRepository.findByNames([
+        ...floorsByName.keys(),
+      ]);
+      const floorIdByName = new Map(savedFloors.map((f) => [f.floorName, f._id]));
 
-    //   rows.push({
-    //     building,
-    //     unitCode,
-    //     lastStatus,
-    //     buildingType:   getCellText(row.getCell(5)),
-    //     totalPrice:     getCellNumber(row.getCell(6)),
-    //     category,
-    //     design:         getCellText(row.getCell(8)),
-    //     floor,
-    //     unitNumber:     getCellText(row.getCell(10)),
-    //     mtrPrice:       getCellNumber(row.getCell(11)),
-    //     grossArea:      getCellNumber(row.getCell(12)),
-    //     garden:         getCellNumber(row.getCell(13)),
-    //     roofArea:       getCellNumber(row.getCell(14)),
-    //     numberOfRooms:  getCellNumber(row.getCell(15)),
-    //     numOfBathrooms: getCellNumber(row.getCell(16)),
-    //   });
-    // });
+      // 5. Save the units, each with its floor id
+      const unitsToSave: IUnitUpsert[] = [];
+      for (const r of rows) {
+        const floorId = floorIdByName.get(r.floorName);
+        if (!floorId) continue; // cannot happen: every floor was saved above
 
-   ///==> note that the above code is just an example of how you can parse and validate the Excel rows.
-    
-   // Upsert all unique buildings that appear in the sheet
-  // const uniqueBuildings = [
-   //   ...new Map(rows.map((r) => [r.building, { building: r.building }])).values(),
-  //  ];
-   // await this.buildingRepository.bulkUpsertBuildings(uniqueBuildings);
+        unitsToSave.push({
+          floor: floorId,
+          unitSegment: r.unitSegment,
+          typeSegment: r.typeSegment,
+          unitStatus: r.unitStatus,
+          totalArea: r.totalArea,
+          GSAArea: r.GSAArea,
+          outdoorTerrace: r.outdoorTerrace,
+          mtrPrice: r.mtrPrice,
+          finalPrice: r.finalPrice,
+          progUnitKey: r.progUnitKey,
+        });
+      }
+      await this.unitRepository.bulkUpsertUnits(unitsToSave);
 
-    // Resolve building name -> ObjectId
-   // const allBuildings = await this.buildingRepository.findAllLean();
-  //  const buildingMap  = new Map(allBuildings.map((b: any) => [b.building, b._id]));
-
-    // Build bulk-upsert operations (keyed by unitCode)
-    // const unitOps = rows.map((r) => ({
-    //   updateOne: {
-    //     filter: { unitCode: r.unitCode },
-    //     update: {
-    //       $set: {
-    //         building:       buildingMap.get(r.building),
-    //         unitCode:       r.unitCode,
-    //         unitNumber:     r.unitNumber,
-    //         buildingType:   r.buildingType,
-    //         category:       r.category,
-    //         design:         r.design,
-    //         floor:          r.floor,
-    //         lastStatus:     r.lastStatus,
-    //         mtrPrice:       r.mtrPrice,
-    //         totalPrice:     r.totalPrice,
-    //         grossArea:      r.grossArea,
-    //         garden:         r.garden,
-    //         roofArea:       r.roofArea,
-    //         numberOfRooms:  r.numberOfRooms,
-    //         numOfBathrooms: r.numOfBathrooms,
-    //       },
-    //     },
-    //     upsert: true,
-    //   },
-    // }));
-
-   // await this.unitRepository.bulkUpsertUnits(unitOps);
-
-    // Delete the uploaded temp file
-  //   fs.unlinkSync(filePath);
-
-    // return {
-    //   success:     true,
-    //   totalRows:   rows.length,
-    //   skippedRows: skipped.length,
-    //   skipped,
-    // };
-  // }
-}
+      return {
+        success: true,
+        rowsProcessed: unitsToSave.length,
+        skippedRows: skipped.length,
+        skipped,
+      };
+    } finally {
+      // 6. Always delete the uploaded file, even if something above threw
+      fs.unlink(filePath, (err) => {
+        if (err) console.error(`Error deleting file: ${err}`);
+      });
+    }
+  }
 }

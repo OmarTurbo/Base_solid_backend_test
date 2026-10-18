@@ -1,4 +1,4 @@
-import { IUnit } from "../../interfaces";
+import { IUnit, IUnitUpsert } from "../../interfaces";
 import { IUnitPopulated } from "../../interfaces";
 
 export interface IUnitRepository {
@@ -8,4 +8,6 @@ export interface IUnitRepository {
     findUnitById(id: string): Promise<IUnitPopulated | null>;
     updateUnitById(id: string, data: Partial<IUnit>): Promise<IUnit | null>;
     deleteUnitById(id: string): Promise<IUnit | null>;
+    bulkUpsertUnits(units: Partial<IUnitUpsert>[]): Promise<void>;
+    findAllWithFloor(): Promise<IUnitPopulated[]>;
 }

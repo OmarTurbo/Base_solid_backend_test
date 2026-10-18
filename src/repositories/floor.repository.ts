@@ -1,6 +1,6 @@
 import { injectable } from "inversify";
 import Floor from "../models/floor.model";
-import { IFloor } from "../interfaces";
+import { IFloor, IFloorUpsert } from "../interfaces";
 import { IFloorRepository } from "./interfaces/floor.repository.interface";
 import { APIFeatures } from "../utils/apiFeatures";
 
@@ -36,5 +36,25 @@ export class FloorRepository implements IFloorRepository {
 
   async findById(id: string): Promise<IFloor | null> {
     return Floor.findById(id).lean<IFloor | null>();
+  }
+
+  async bulkUpsertFloors(floors: IFloorUpsert[]): Promise<void> {
+    if (!floors.length) return;
+
+    const operations = floors.map((floor) => ({
+      updateOne: {
+        filter: { floorName: floor.floorName },
+        update: {
+          $set: { floorType: floor.floorType, floorStatus: floor.floorStatus },
+        },
+        upsert: true,
+      },
+    }));
+
+    await Floor.bulkWrite(operations);
+  }
+
+  async findByNames(names: string[]): Promise<IFloor[]> {
+    return Floor.find({ floorName: { $in: names } }).lean<IFloor[]>();
   }
 }

@@ -7,4 +7,6 @@ export interface IFloorRepository {
   findAll(query: Record<string, string>): Promise<IFloor[]>;
   updateById(id: string, data: Partial<IFloor>): Promise<IFloor | null>;
   deleteById(id: string): Promise<IFloor | null>;
+  bulkUpsertFloors(floors: Partial<IFloor>[]): Promise<void>;
+  findByNames(floorNames: string[]): Promise<IFloor[]>;
 }

@@ -16,3 +16,16 @@ export interface IUnit extends Document {
     createdAt: Date;
     updatedAt: Date;
 }
+
+export interface IUnitUpsert {
+    floor: Types.ObjectId;
+    unitSegment: string;
+    typeSegment: TypeSegment;
+    unitStatus: UnitStatus;
+    totalArea: number;
+    GSAArea: number;
+    outdoorTerrace: number;
+    mtrPrice: number;
+    finalPrice: number;
+    progUnitKey: number;
+}
