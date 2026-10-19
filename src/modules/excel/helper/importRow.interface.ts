@@ -12,5 +12,5 @@ export interface IImportRow {
     outdoorTerrace: number;
     mtrPrice: number;
     finalPrice: number;
-    progUnitKey: number;
+    progUnitKey: string;
 }

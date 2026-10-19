@@ -52,7 +52,7 @@ const unitSchema = new Schema<IUnit>(
             required: true,
         },
         progUnitKey: {
-            type: Number,
+            type: String,
             unique: true,
             index: true,
             required: false,
@@ -61,19 +61,19 @@ const unitSchema = new Schema<IUnit>(
     { timestamps: true }
 );
 
-unitSchema.pre("save", async function () {
-    if (!this.isNew || this.progUnitKey) {
-        return;
-    }
+// unitSchema.pre("save", async function () {
+//     if (!this.isNew || this.progUnitKey) {
+//         return;
+//     }
 
-    const lastUnit = await mongoose
-        .model("Unit")
-        .findOne({}, { progUnitKey: 1 })
-        .sort({ progUnitKey: -1 });
+//     const lastUnit = await mongoose
+//         .model("Unit")
+//         .findOne({}, { progUnitKey: 1 })
+//         .sort({ progUnitKey: -1 });
 
-    this.progUnitKey = lastUnit?.progUnitKey
-        ? lastUnit.progUnitKey + 1
-        : 1;
-});
+//     this.progUnitKey = lastUnit?.progUnitKey
+//         ? lastUnit.progUnitKey + 1
+//         : 1;
+// });
 
 export default mongoose.model<IUnit>("Unit", unitSchema);

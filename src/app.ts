@@ -16,6 +16,7 @@ import { apiLimiter } from "./config/rateLimiter";
 import { env } from "./config/env";
 
 export const app: Application = express();
+const API_PREFIX = "/api/v1/kavi-mall";
 
 app.set("trust proxy", 1);
 app.use(helmet());
@@ -37,12 +38,12 @@ app.use(express.json());
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-app.use("/api/v1/test/auth", authRouter);
-app.use("/api/v1/test/user", apiLimiter, userRouter);
-app.use("/api/v1/test/messages", messageRouter);
-app.use("/api/v1/test/floors", floorRouter);
-app.use("/api/v1/test/units", unitRouter);
-app.use("/api/v1/excel", apiLimiter, excelRouter);
+app.use(`${API_PREFIX}/auth`, authRouter);
+app.use(`${API_PREFIX}/user`, apiLimiter, userRouter);
+app.use(`${API_PREFIX}/messages`, messageRouter);
+app.use(`${API_PREFIX}/floors`, floorRouter);
+app.use(`${API_PREFIX}/units`, unitRouter);
+app.use(`${API_PREFIX}/excel`, apiLimiter, excelRouter);
 
 app.all("/{*splat}", (req, _res, next) => {
   next(new AppError(`Route ${req.originalUrl} not found`, 404));

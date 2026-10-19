@@ -43,9 +43,9 @@ export function parseImportRow(row: ExcelJS.Row): ParseResult {
         : UnitStatus.AVAILABLE;
     if (!unitStatus) return { reason: `Invalid unitStatus "${rawUnitStatus}"` };
 
-    const progUnitKey = getCellNumber(row.getCell(12));
-    if (!Number.isInteger(progUnitKey) || progUnitKey <= 0) {
-        return { reason: "progUnitKey must be a positive whole number" };
+    const progUnitKey = getCellText(row.getCell(12));
+    if (!progUnitKey ) {
+        return { reason: "progUnitKey is required" };
     }
 
     return {

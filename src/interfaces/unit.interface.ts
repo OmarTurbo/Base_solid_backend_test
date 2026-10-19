@@ -12,7 +12,7 @@ export interface IUnit extends Document {
     unitSegment: string;
     typeSegment: TypeSegment;
     finalPrice?: number;
-    progUnitKey: number;
+    progUnitKey: string;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -27,5 +27,5 @@ export interface IUnitUpsert {
     outdoorTerrace: number;
     mtrPrice: number;
     finalPrice: number;
-    progUnitKey: number;
+    progUnitKey: string;
 }

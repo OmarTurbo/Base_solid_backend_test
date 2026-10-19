@@ -11,6 +11,7 @@ export const excelRouter = Router();
 
 const controller = container.get<UnitExcelController>(EXCEL_TYPES.ExcelController);
 
-excelRouter.post("/import-excel", protect , restrictTo(Role.ADMIN_ROLE), uploadExcel.single("file"), controller.importExcel);
-excelRouter.get("/export-excel", protect, restrictTo(Role.ADMIN_ROLE), controller.exportExcel);
+excelRouter.use(protect, restrictTo(Role.ADMIN_ROLE));
+excelRouter.post("/import-excel", uploadExcel.single("file"), controller.importExcel);
+excelRouter.get("/export-excel", controller.exportExcel);
 
