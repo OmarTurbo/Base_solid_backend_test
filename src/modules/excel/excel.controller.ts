@@ -15,8 +15,8 @@ export class UnitExcelController {
     private readonly importUnitsExcelUseCase: ImportUnitsExcelUseCase,
 
     @inject(EXCEL_TYPES.ExportUnitsExcelUseCase)
-    private readonly exportUnitsExcelUseCase: ExportUnitsExcelUseCase
-  ) { }
+    private readonly exportUnitsExcelUseCase: ExportUnitsExcelUseCase,
+  ) {}
   importExcel = catchAsync(async (req: Request, res: Response) => {
     if (!req.file) {
       throw new AppError(
@@ -32,7 +32,7 @@ export class UnitExcelController {
     const filePath = await this.exportUnitsExcelUseCase.execute();
 
     res.download(filePath, "units-export.xlsx", (err) => {
-      fs.unlink(filePath, () => { });
+      fs.unlink(filePath, () => {});
       if (err && !res.headersSent) {
         res.status(500).json({ message: "Failed to download file" });
       }
